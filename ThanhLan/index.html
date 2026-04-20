@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Giảng Điện Tử</title>
+    <style>
+        :root { --primary: #004a99; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); margin: 0; padding: 20px; text-align: center; }
+				
+        
+        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+
+        /* Nút quay về Trang Tổng */
+        .back-home { text-decoration: none; color: var(--primary); font-weight: bold; display: inline-block; margin-bottom: 20px; transition: 0.3s; }
+        .back-home:hover { transform: translateX(-5px); color: #d63031; }
+
+        h1 { color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 30px; font-size: 1.5rem; }
+
+        .lesson-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+
+        .lesson-item { 
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 20px; background: #fff; border: 1px solid #eee; border-radius: 12px;
+            text-decoration: none; color: #2d3436; font-weight: 600; transition: 0.3s;
+        }
+
+        .lesson-item:hover { 
+            background: #eef2f7; border-color: var(--primary); 
+            transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .lesson-item::before { content: "📘"; margin-right: 15px; font-size: 1.2rem; }
+        .lesson-item::after { content: "Bắt đầu học ➔"; font-size: 0.8rem; color: var(--primary); font-weight: normal; }
+
+		.view-stats {
+			font-size: 0.8rem;
+			color: #636e72;
+			background: #f1f2f6;
+			padding: 3px 12px;
+			border-radius: 10px;
+			margin-right: 20px; /* Khoảng cách với tên bài giảng */
+			margin-left: 10px;  /* Khoảng cách với icon cuốn sách */
+			font-weight: normal;
+			min-width: 80px;
+			text-align: center;
+			white-space: nowrap;
+		}
+
+		/* Đẩy nút "Bắt đầu học" sang tận cùng bên phải */
+		.start-text {
+			margin-left: auto; 
+			color: var(--primary-color);
+			font-size: 0.85rem;
+			font-weight: normal;
+		}
+		
+		/* Khi di chuột vào cả khối bài giảng, ô lượt xem sẽ đổi màu */
+		.lesson-item:hover .view-stats {
+			background-color: #007bff; /* Đổi sang màu xanh */
+			color: white;              /* Chữ sang màu trắng */
+			box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+		}
+
+		/* Tối ưu Mobile: Khi chạm tay vào */
+		@media (max-width: 768px) {
+			.lesson-item:active .view-stats {
+			background-color: #007bff;
+			color: white;
+			}
+		}
+		
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Nút quay về Trang Tổng (index.html ngoài cùng) -->
+    <a href="../index.html" class="back-home">⬅️ Quay lại danh sách Giáo viên</a>
+    
+    <h1 id="teacher-title">DANH SÁCH BÀI GIẢNG</h1>
+
+    <div id="lesson-list" class="lesson-grid">
+        <!-- Bài giảng tự động hiện ở đây -->
+    </div>
+	
+	<!-- Nút Reset nằm ở đâu đó dễ thấy -->
+	<button id="btn-reset" style="display: none ; margin: 20px; padding: 10px; cursor: pointer; background: #ff4d4d; color: white; border: none; border-radius: 5px;">
+		🔄	Xóa hết lượt xem (Reset)
+	</button>	
+</div>
+
+<script>
+    // NHẬP DANH SÁCH BÀI GIẢNG VÀ LINK MOODLE TẠI ĐÂY
+    const lessons = [
+        { name: "Toán 4 - Tiết 58: Em làm được những gì?", url: "https://hoctructuyen.nguyenthaisonps.edu.vn/course/view.php?id=77" },
+		{ name: "Toán 5 - Bài 21: So sánh 2 số thập phân", url: "https://hoctructuyen.nguyenthaisonps.edu.vn/course/view.php?id=45" }
+        ];
+
+    const listContainer = document.getElementById('lesson-list');
+
+	const namespace = "nguyenthaison_school"; // Tên định danh cho trường bạn
+
+    //lessons.forEach(l => {
+        //const item = document.createElement('a');
+	lessons.forEach(function(l) {
+		var item = document.createElement('a');		
+        item.href = l.url;
+        item.className = 'lesson-item';
+        // Mở bài giảng Moodle ở tab mới để không mất trang Netlify
+        item.target = "_blank"; 
+		
+        //item.innerText = l.name;
+		
+		// Tạo ID từ tên bài giảng (Xóa dấu, chuyển thành chữ thường để làm API ID)
+		
+		var lessonId = l.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').toLowerCase().replace(/[^a-z0-9-]/g, '');
+		var lessonKey = lessonId;
+		var namespace = "nguyenthaison2024";
+		var savedCount = localStorage.getItem("count-" + lessonId) || 0;
+		item.innerHTML = ` 
+			<span class="view-stats">👁️ <span id="count-${lessonId}">${savedCount} lượt xem</span></span> 
+			<span class="lesson-name">${l.name}</span>
+			<span class="start-text"></span>
+		`;
+	
+		// 2. Tăng số khi Click
+		item.onclick = function() {
+			var currentCount = parseInt(localStorage.getItem("count-" + lessonId)) || 0;
+			var newCount = currentCount + 1 + " lượt xem";
+			
+			localStorage.setItem("count-" + lessonId, newCount);
+			
+			
+			var span = document.getElementById("count-" + lessonId);
+			if (span) span.innerText = newCount;
+				
+				
+			console.log("Đã tăng lượt xem cho: " + lessonId);
+			
+		};
+		
+	// Tìm cái nút có ID là 'btn-reset' và bắt nó làm việc
+		document.getElementById('btn-reset').onclick = function() {
+			if (confirm("Bạn có muốn xóa sạch lịch sử lượt xem để test lại không?")) {
+				localStorage.clear(); // Xóa sạch bộ nhớ máy
+				location.reload();    // Tải lại trang để số về 0
+			}
+		};	
+			
+			listContainer.appendChild(item);
+				
+    });
+</script>
+
+</body>
+</html>

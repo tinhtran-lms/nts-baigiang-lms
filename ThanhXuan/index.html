@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Giảng Điện Tử</title>
+
+		<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+		<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>		
+		
+    <style>
+        :root { --primary: #004a99; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); margin: 0; padding: 20px; text-align: center; }
+				
+        
+        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+
+        /* Nút quay về Trang Tổng */
+        .back-home { text-decoration: none; color: var(--primary); font-weight: bold; display: inline-block; margin-bottom: 20px; transition: 0.3s; }
+        .back-home:hover { transform: translateX(-5px); color: #d63031; }
+
+        h1 { color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 30px; font-size: 1.5rem; }
+
+        .lesson-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+
+        .lesson-item { 
+            position: relative !important;
+			display: flex !important; align-items: center; justify-content: space-between;
+            padding: 20px; background: #fff; border: 1px solid #eee; border-radius: 12px;
+            text-decoration: none; color: #2d3436; font-weight: 600; transition: 0.3s;
+        }
+
+        .lesson-item:hover { 
+            background: #eef2f7; border-color: var(--primary); 
+            transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .lesson-item::before { content: "📘"; margin-right: 15px; font-size: 1.2rem; }
+        .lesson-item::after { content: "Bắt đầu học ➔"; font-size: 0.8rem; color: var(--primary); font-weight: normal; }
+
+		.view-stats {
+			font-size: 0.8rem;
+			color: #636e72;
+			background: #f1f2f6;
+			padding: 3px 12px;
+			border-radius: 10px;
+			margin-right: 20px; /* Khoảng cách với tên bài giảng */
+			margin-left: 10px;  /* Khoảng cách với icon cuốn sách */
+			font-weight: normal;
+			min-width: 80px;
+			text-align: center;
+			white-space: nowrap;
+		}
+
+		/* Đẩy nút "Bắt đầu học" sang tận cùng bên phải */
+		.start-text {
+			margin-left: auto; 
+			color: var(--primary-color);
+			font-size: 0.85rem;
+			font-weight: normal;
+		}
+		
+		/* Khi di chuột vào cả khối bài giảng, ô lượt xem sẽ đổi màu */
+		.lesson-item:hover .view-stats {
+			background-color: #007bff; /* Đổi sang màu xanh */
+			color: white;              /* Chữ sang màu trắng */
+			box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+		}
+		
+		/* Thanh tiến trình chạy ngầm */
+		.progress-container {
+			width: 100%;
+			height: 4px;
+			background-color: #f1f2f6;
+			border-radius: 2px;
+			margin-top: 5px;
+			display: none; /* Mặc định ẩn */
+		}
+
+		.progress-bar {
+			width: 0%;
+			height: 100%;
+			background-color: #2ecc71; /* Màu xanh lá cây */
+			border-radius: 2px;
+			transition: width 1s linear;
+		}		
+		
+		/* 2. Cố định vị trí cụm icon i */
+		.info-wrapper {
+			position: static; /* Để nó không làm rối hàng */
+			margin-left: 10px;
+			display: inline-block;
+		}
+
+
+
+		/* Khung bọc nút Info */
+		.info-wrapper:hover .lesson-popup {
+			visibility: visible !important;
+			opacity: 1 !important;
+			position: relative;
+			display: inline-block;
+			margin-left: 8px;
+			cursor: pointer;
+			bottom: 110%; /* Nhảy lên một chút khi hiện */
+		}
+
+		.info-icon {
+			font-style: normal;
+			background: #eee;
+			border-radius: 50%;
+			width: 18px;
+			height: 18px;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 12px;
+			color: #666;
+		}
+
+		/* Nội dung Popup */
+		.lesson-popup {
+			/* 1. CHỈNH CHIỀU RỘNG */
+			width: 280px;           /* Tăng/giảm con số này để khung rộng ra hoặc thu hẹp lại */
+			min-width: 200px;       /* Chiều rộng tối thiểu */
+			max-width: 90vw;        /* Đảm bảo trên điện thoại không bị tràn màn hình (90% chiều rộng màn hình) */
+
+			/* 2. CHỈNH CHIỀU CAO (Nếu nội dung quá dài) */
+			max-height: 200px;      /* Giới hạn chiều cao tối đa */
+			overflow-y: auto;        /*Nếu nội dung dài quá 200px sẽ tự hiện thanh cuộn bên trong popup */
+
+			/* 3. KHOẢNG CÁCH CHỮ VỚI MÉP KHUNG */
+			padding: 12px 15px;     
+    
+			/* 4. CHỈNH CỠ CHỮ TRONG POPUP */
+			font-size: 14px;
+			line-height: 1.5;       /* Khoảng cách giữa các dòng cho dễ đọc */
+    
+			/* Giữ nguyên các phần khác bạn đã làm... */
+			visibility: hidden !important;
+			opacity: 0 !important;
+			position: absolute !important;
+			bottom: 100%; 
+			left: 50%;
+			transform: translateX(-50%);
+			background: white;
+			border: 2px solid #3498db; /* Làm viền đậm hơn tí cho xịn */
+			border-radius: 10px;
+			box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+			z-index: 9999 !important;
+			pointer-events: none; /* Tránh việc popup đè lên làm khó bấm */
+			height: auto;
+			transition: all 0.2s ease-in-out;
+		}
+		
+		.info-icon {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 24px;            /* Tăng kích thước lớn hơn */
+			height: 24px;           /* Tăng kích thước lớn hơn */
+			background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); /* Màu Gradient cực ngầu */
+			color: white;
+			border-radius: 50%;     /* Hình tròn hoàn hảo */
+			font-family: 'Georgia', serif; /* Kiểu chữ i có chân nhìn sang hơn */
+			font-style: italic;
+			font-weight: bold;
+			font-size: 16px;        /* Chữ i to rõ */
+			box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+			cursor: pointer;
+			transition: transform 0.2s ease;
+		}
+
+		.info-icon:hover {
+			transform: scale(1.2); /* Rê chuột vào icon nó to lên một chút */
+		}		
+		
+
+		/* Tối ưu Mobile: Khi chạm tay vào */
+		@media (max-width: 768px) {
+			/* Khối bao quanh mỗi bài giảng */
+			.lesson-item {
+				display: flex;
+				align-items: center; /* Căn giữa các thành phần theo chiều dọc */
+				padding: 10px !important;
+				gap: 8px; /* Tạo khoảng cách nhỏ giữa các thành phần */
+			}
+			.mobile-break {
+				display: block; /* Kích hoạt lệnh xuống dòng */
+				content: "";    /* Đảm bảo nó chiếm chỗ để đẩy chữ xuống */
+				margin-top: 5px; /* Khoảng cách giữa 2 dòng cho đẹp */
+			}			
+			
+			
+			/* Phần số lượt xem */
+			.view-stats {
+				display: inline-block;
+				margin-right: ; /* Khoảng cách với tên bài giảng */
+				margin-left: -10px;  /* Khoảng cách với icon cuốn sách */
+			
+				text-align: center;      /* Căn giữa số và chữ trong khung */
+				line-height: 1.1;        /* Khoảng cách 2 dòng sát nhau cho gọn */
+				font-size: 0.7rem;
+				padding: 4px 6px;
+				background: #f1f2f6;
+				border-radius: 8px;
+				min-width: 45px;         /* Độ rộng vừa đủ để không chiếm chỗ */
+				color: #636e72;
+			}
+			/* Tên bài giảng */
+			.lesson-name {
+
+
+				text-align: center;      /* Căn giữa tên bài giảng */
+				font-size: 0.9rem;
+				color: #2d3436;
+
+			}
+			
+			/* Chữ "Bắt đầu học" */
+			.start-text {
+
+				color: #007bff; /* Đổi thành màu xanh cho chuyên nghiệp hơn màu vàng */
+				font-size: 0.8rem;
+				white-space: nowrap;
+				text-align: right;
+				min-width: fit-content;
+			}
+			
+			/* Hiệu ứng Rê chuột trên PC */
+			@media (min-width: 1025px) {
+				.info-wrapper:hover .lesson-popup {
+					visibility: visible;
+					opacity: 1;
+				}
+			}
+
+			/* Hiệu ứng khi Bấm trên Mobile (Dùng class active khi click) */
+			@media (max-width: 1024px) {
+				.info-wrapper:active .lesson-popup {
+				visibility: visible;
+				opacity: 1;
+				}
+			}
+			
+			
+		}
+
+		
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Nút quay về Trang Tổng (index.html ngoài cùng) -->
+    <a href="../index.html" class="back-home">⬅️ Quay lại danh sách Giáo viên</a>
+    
+    <h1 id="teacher-title">DANH SÁCH BÀI GIẢNG</h1>
+
+    <div id="lesson-list" class="lesson-grid">
+        <!-- Bài giảng tự động hiện ở đây -->
+    </div>
+	<!-- Nút Reset nằm ở đâu đó dễ thấy -->
+	<!-- <button id="btn-reset" style="display ; margin: 20px; padding: 10px; cursor: pointer; background: #ff4d4d; color: white; border: none; border-radius: 5px;"> -->
+		<!-- 🔄	Xóa hết lượt xem (Reset) -->
+	<!-- </button> -->
+
+	<!-- <button onclick="resetCounts()" style="background-color: red; color: white;"> -->
+	<button onclick="resetCounts()" style="display ; margin: 20px; padding: 10px; cursor: pointer; background: #ff4d4d; color: white; border: none; border-radius: 5px;">
+		🔄 Reset toàn bộ lượt xem trên hệ thống
+	</button>	
+	
+</div>
+
+<script>
+    // NHẬP DANH SÁCH BÀI GIẢNG VÀ LINK MOODLE TẠI ĐÂY
+    const lessons = [
+        { name: "Anh văn 4 - Unit 6: Describing People - Art", url: "https://hoctructuyen.nguyenthaisonps.edu.vn/course/view.php?id=87", desc: "Bài dự thi GV Giỏi năm học 2025-2026" }
+        ];
+    
+		//	Cấu hình Firebase
+		const firebaseConfig = {
+			databaseURL: "https://nts-baigiang-e-learning-default-rtdb.asia-southeast1.firebasedatabase.app",
+			databaseURL: "https://nts-lms-default-rtdb.asia-southeast1.firebasedatabase.app"
+		};
+		if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+		const db = firebase.database();
+		// mới thêm
+		
+    const listContainer = document.getElementById('lesson-list');
+	//const namespace = "nguyenthaison_school"; // Tên định danh cho trường bạn
+	var namespace = "nguyenthaison_school";	
+
+
+
+    lessons.forEach(l => {
+        var item = document.createElement('a');
+        item.href = l.url;
+        item.className = 'lesson-item';
+        // Mở bài giảng Moodle ở tab mới để không mất trang Netlify
+        item.target = "_blank"; 
+		
+        //item.innerText = l.name;
+		
+		// Tạo ID từ tên bài giảng (Xóa dấu, chuyển thành chữ thường để làm API ID)
+		
+			var lessonId = l.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').toLowerCase().replace(/[^a-z0-9-]/g, '');
+			var lessonKey = lessonId;
+			var namespace = "nguyenthaison2024";
+			var savedCount = localStorage.getItem("count-" + lessonId) || 0;
+		item.innerHTML = ` 
+        
+			<span class="view-stats">👁️ <span id="count-${lessonId}">0 </span> <br class="mobile-break"> lượt xem </span> 
+				
+			<span class="lesson-name">${l.name}
+			        <!-- NÚT INFO: Trên PC rê chuột vào là hiện, trên Mobile bấm vào là hiện -->
+						<span class="info-wrapper" onclick="event.preventDefault(); event.stopPropagation();" style="position: relative; display: inline-block; cursor: pointer; margin-left: 8px;">
+						<!-- <span style="background: #3498db; color: white; border-radius: 4px; padding: 0 5px; font-size: 12px;">i</span> -->
+						<span class="info-icon" center;>i</span>
+							<div class="lesson-popup">
+								<!-- <strong></strong><br> -->
+								${l.desc || 'Chưa có mô tả cho bài giảng này.'}
+							</div>
+						</span>
+
+			</span>
+			
+			<span class="start-text"></span>
+		    
+		    <!-- THÊM ĐOẠN NÀY VÀO DƯỚI CÙNG CỦA LESSON-ITEM -->
+			<div class="progress-container" style="display: none; width: 100%; height: 8px; background: #eee; border-radius: 2px; margin-top: 8px;">
+				<div class="progress-bar" style="width: 0%; max-width:100%; height: 100%; background: #2ecc71; transition: width 1s linear; border-radius: 2px;"></div>
+			</div>
+		`;
+
+				// 1. Mở bài giảng ngay
+				const lessonUrl = this.href; 
+				// const lessonId = l.id;
+				const countRef = db.ref("counts/" + lessonId); // Đảm bảo có đường dẫn tới đúng bài này
+
+		// 2. Lắng nghe Firebase (Máy nào tăng số là máy mình hiện theo ngay)
+			//const countRef = db.ref("counts/" + lessonId);
+			countRef.on('value', (snapshot) => {
+				const val = snapshot.val() || 0;
+				const span = document.getElementById(`count-${lessonId}`);
+				if (span) span.innerText = val;
+			});
+
+		// 3. Tăng số khi Click (Đẩy lên Google)
+			item.onclick = function(e) {
+					//countRef.transaction((current) => (current || 0) + 1);
+			        var win = window.open(this.href, '_blank');
+					const pContainer = this.querySelector('.progress-container');
+					const pBar = this.querySelector('.progress-bar');
+    
+				// Kiểm tra xem là Mobile hay PC
+				const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);	
+				const lessonId = l.id;
+					if (pContainer && pBar) {
+						// Reset lại thanh về màu xanh mặc định mỗi khi bấm mới
+						pBar.style.backgroundColor = '#2ecc71';
+						pContainer.style.display = 'block'; // Hiện thanh lên
+						let seconds = 0;
+						const target = 10;
+        
+						const timer = setInterval(() => {
+							seconds++;
+							pBar.style.width = (seconds / target * 100) + '%';
+
+							// --- NHÁNH 1: XỬ LÝ TRÊN PC (Kiểm tra đóng tab) ---
+							if (!isMobile && win && win.closed) {
+								stopTimer("PC: Đã đóng tab sớm!");
+								return;
+							}	
+							
+							
+							if (seconds >= target) {
+								clearInterval(timer);
+								// db.ref("counts/" + l.id).transaction(c => (c || 0) + 1);
+								countRef.transaction(c => (c || 0) + 1);
+								setTimeout(() => { pContainer.style.display = 'none'; }, 500);
+							}
+						}, 1000);
+						
+						// --- MOBILE: Quay lại sớm là báo đỏ ---
+						if (isMobile) {
+							const handleMobile = function() {
+								if (document.visibilityState === 'visible' && seconds < target) {
+									stopTimer("Mobile: Quay lại quá sớm!");
+									window.removeEventListener('visibilitychange', handleMobile);
+								}
+							};
+							window.addEventListener('visibilitychange', handleMobile);
+						}
+
+						// Hàm dừng an toàn
+						function stopTimer(msg) {
+							clearInterval(timer);
+							pBar.style.backgroundColor = '#ff4757'; 
+							console.log(msg);
+							setTimeout(() => {
+								pContainer.style.display = 'none';
+								pBar.style.width = '0%';
+							}, 1500);
+						}
+					}
+			};					
+					
+
+	
+			listContainer.appendChild(item);
+				
+    });
+	
+		// Tìm cái nút có ID là 'btn-reset' và bắt nó làm việc
+		const btnReset = document.getElementById('btn-reset');
+		if (btnReset) {
+				btnReset.onclick = function() {
+				if (confirm("Xóa sạch lượt xem trên toàn hệ thống?")) {
+					db.ref("counts").remove();
+					location.reload();
+				}		
+			};	
+		}
+
+		// Hàm xử lý Reset có bảo mật
+		function resetCounts() {
+			// 1. Đặt mật khẩu của Sơn ở đây (Ví dụ: 1234)
+			const securePass = "1234"; 
+    
+			// 2. Hiện bảng yêu cầu nhập mã
+			let userInput = prompt("Vui lòng nhập mật mã để Reset toàn bộ lượt xem:");
+
+			// 3. Kiểm tra mã nhập vào
+			if (userInput === null) {
+				// Người dùng bấm "Hủy" (Cancel)
+				return; 
+			}
+
+			if (userInput === securePass) {
+				// Nếu đúng mật mã -> Tiến hành xóa trên Firebase
+				firebase.database().ref('counts').remove()
+					.then(() => {
+						alert("Đã xóa sạch lượt xem thành công!");
+						location.reload(); // Load lại trang để cập nhật số 0
+					})
+					.catch((error) => {
+						console.error("Lỗi khi xóa:", error);
+						alert("Có lỗi xảy ra, Sơn kiểm tra lại console nhé.");
+					});
+			} else {
+				// Nếu sai mật mã
+				alert("Sai mật mã! Không Reset được.");
+			}
+		}
+
+
+		
+</script>
+
+
+</body>
+</html>

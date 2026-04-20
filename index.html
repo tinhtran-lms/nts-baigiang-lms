@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Bài Giảng Điện Tử</title>
+    <style>
+        :root {
+		.don-vi { 
+			color: #0984e3 !important; /* Thay mã màu ở đây (Ví dụ: #2d3436#000000 là đen tuyền) */
+			text-align: center;
+			font-size: 1.1rem;
+			font-weight: bold;
+			text-transform: uppercase;
+			margin-bottom: 5px;
+			letter-spacing: 0.5px;
+		}
+		/* Tên trường (Bạn có thể thêm class này vào thẻ chứa tên trường) */
+		.ten-truong { 
+			text-align: center;
+			color: #004a99; /* Màu xanh dương đậm */
+			font-size: 1.3rem;
+			font-weight: bold;
+			margin-top: 5px;
+			letter-spacing: 0.5px;
+		}
+
+		h1 { 
+			color: #d63031; /* Thay mã màu ở đây (Ví dụ: #0984e3 là xanh dương đậm) */
+			text-align: center;
+			font-size: 2.2rem;
+			margin-top: 15px;
+			margin-bottom: 5px;
+			font-weight: 800;
+}		
+            /*--don-vi-color: #2d3436; * Màu chữ tên đơn vị */
+            /*--primary-color: #d63031; /* Màu chủ đạo hệ thống */
+            /*--bg-body: #f1f2f6;*/
+        }
+        
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: linear-gradient(180deg, #e0f2fe 0%, #ffffff 100%); margin: 0; padding: 20px; min-height: 100vh; }
+        .container { max-width: 1200px; margin: auto; background: linear-gradient(180deg, #e0f2fe 0%, #ffffff 100%); padding: 40px; border-radius: 25px; box-shadow: 0 10px 40px rgba(0,0,0,0.1);}
+		/*.container { max-width: 1100px; margin: auto; background: linear-gradient(180deg, #e0f2fe 0%, #ffffff 100%); padding: 40px; border-radius: 25px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }*/
+	
+
+        /* Tên đơn vị quy chuẩn */
+        .don-vi { text-align: center; font-weight: bold; color: var(--don-vi-color); font-size: 1.2rem; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 1px; }
+        h1 { text-align: center; color: var(--primary-color); margin-top: 0; font-size: 2.2rem; margin-bottom: 30px; }
+
+        .search-wrapper { max-width: 500px; margin: 0 auto 40px; }
+        #teacherSearch { width: 100%; padding: 15px 25px; border-radius: 50px; border: 2px solid #dfe6e9; font-size: 1rem; outline: none; transition: 0.3s; }
+        #teacherSearch:focus { border-color: var(--primary-color); box-shadow: 0 5px 15px rgba(214, 48, 49, 0.2); }
+
+        .grid-container { 
+			display: grid; 
+			grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+			column-gap: 25px;
+			row-gap: 60px; 
+			align-items: stretch; /* Dòng này giúp các thẻ tự co giãn bằng nhau */
+			margin-top: 20px;
+			}
+
+        .teacher-card { 
+			background: lightgreen; border-radius: 15px; text-decoration: none; color: #2d3436;
+			padding: 20px 15px; transition: 0.4s; border: 1px solid #eee; 
+			/* Chuyển sang Flexbox để canh giữa tất cả */
+			display: flex; flex-direction: column; align-items: center; justify-content: center;
+			gap: 15px; text-align: center;
+			box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+			height: 100%; /* Giúp các ô cao bằng nhau */
+			min-height: 150px;
+		}
+
+		.teacher-card:hover { transform: translateY(-10px); box-shadow: 0 12px 20px rgba(0,0,0,0.1); }
+
+        /* Ảnh đại diện */
+        .avatar { 
+            width: 150px; height: 150px; border-radius: 50%; object-fit: cover; 
+            margin-bottom: 15px; border: 4px solid #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .name { font-size: 1.2rem; font-weight: bold; margin-bottom: 5px; }
+        .count { font-size: 0.85rem; color: #636e72; background: #f1f2f6; padding: 5px 15px; border-radius: 20px; }
+		
+		.avatar-circle {
+			width: 150px;
+			height: 150px;
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 4rem;
+			font-weight: bold;
+			color: yellow;
+			margin-bottom: 15px;
+			text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+			box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+		}
+		
+	/* Khung chứa ảnh và tên bên trái */
+		.avatar-container {
+			display: flex; 
+			flex-direction: column; 
+			align-items: center; 
+			gap: 10px;
+		}
+
+	/* Định dạng ảnh đại diện thật */
+		.avatar-img, .avatar-circle {
+			width: 150px; height: 150px; border-radius: 50%;
+			object-fit: cover; border: 3px solid #fff; box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+		}
+		.avatar-circle { font-size: 4.2rem; font-weight: bold; color: yellow; margin: 0 auto; }
+
+	/* Tên giáo viên nằm dưới hình */
+		.name { 
+			font-size: 1.1rem; font-weight: bold; 
+			margin: 5px 0; line-height: 1.4;
+			max-width: 300px;
+			color: #2d3436;;
+		}
+
+	/* Phần thông tin bên phải */
+		.info-right {
+			width: 100%;	
+			display: flex; 
+			justify-content: center;
+		}
+
+		.count { 
+			font-size: 0.9rem; color: #636e72; background: #f8f9fa; 
+			padding: 8px 20px; border-radius: 20px; border: 1px solid #f1f2f6;
+		}
+		.count b { color: #004a99; }
+		.total-stats {
+			text-align: center;
+			margin: -10px auto 30px; /* Nằm ngay dưới tiêu đề */
+			display: flex;
+			justify-content: center;
+		}
+
+		.stat-box {
+			background: linear-gradient(135deg, #004a99, #0074e4);
+			color: white;
+			padding: 10px 25px;
+			border-radius: 50px;
+			font-size: 1.1rem;
+			font-weight: bold;
+			box-shadow: 0 4px 15px rgba(0, 74, 153, 0.3);
+			display: flex;
+			align-items: center;
+			gap: 10px;
+		}
+
+		.stat-box b {
+			font-size: 1.4rem;
+			color: #ffeaa7; /* Màu vàng nhạt cho con số thêm nổi bật */
+		}
+		
+		.header-relative {
+			position: relative; /* Làm gốc cho logo */
+			width: 100%;
+			min-height: 100px;
+			display: flex;
+			align-items: center;
+			justify-content: center; /* Chữ vẫn ở giữa */
+			margin-bottom: 10px;
+		}
+		
+		/* Kích thước Logo */
+		.school-logo-left {
+			position: absolute;
+			left: 20px; /* Cách lề trái 20px */
+			top: 65%;
+			transform: translateY(-50%); /* Căn giữa theo chiều dọc */
+			width: 180px; /* Bạn có thể tăng lên 100px nếu muốn to hơn */
+			height: auto;
+			z-index: 10;
+		}
+
+		.slogan-container {
+			background-color: blue; /* Nền xanh dương đậm */
+			color: #ffff00;           /* Chữ màu vàng Gold */
+			/*padding: 12px 0;*/
+			font-weight: bold;
+			font-size: 2.2rem;
+			margin: 0 auto 20px;           /* Tạo khoảng cách trên dưới */
+			border-radius: 5px;       /* Bo góc nhẹ cho tinh tế */
+			box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+		}
+
+		.slogan-container marquee {
+			display: block;
+		}
+		
+		.mobile-break {
+			display: none;
+		}	
+		
+		/* Định nghĩa hiệu ứng hiện lên từ từ */
+		@keyframes fadeIn {
+			from { opacity: 0; transform: translateY(-10px); }
+			to { opacity: 1; transform: translateY(0); }
+		}
+
+		#no-result {
+			/* Khi hiện lên sẽ chạy hiệu ứng fadeIn trong 0.5 giây */
+				animation: fadeIn 5s ease-out;
+		}
+		
+		
+		
+
+			/* Tối ưu Mobile: Khi chạm tay vào */
+		@media (max-width: 480px) {
+
+			/* 1. Sắp xếp lại Header để Logo không đè chữ */
+			.header-container { /* Thay bằng class bao quanh toàn bộ header của bạn */
+				display: flex;
+				flex-direction: column; /* Xếp chồng các thành phần theo hàng dọc */
+				align-items: center;
+			}    
+			.school-logo-left {
+				/* Quan trọng: Chuyển từ bay lơ lửng sang nằm bình thường */
+				position: static !important; 
+				transform: none !important;
+        
+				display: block !important;
+				margin: 10px auto !important; /* Căn giữa logo */
+				width: 100px !important;      /* Thu nhỏ lại cho vừa mắt */
+			}
+
+			.slogan-container {
+				width: 95% !important;
+				margin: 0 auto 15px !important;
+				padding: 8px 5px !important;
+			}
+
+			.slogan-container marquee {
+				font-size: 1.2rem !important; /* Giảm cỡ chữ chạy để không bị vỡ hàng */
+			}
+
+			.ten-truong {
+				font-size: 15px !important;
+				line-height: 1.4;
+				text-align: center;
+				margin-top: 5px;
+			}
+			
+			.don-vi {
+				font-size: 14px !important;
+				line-height: 1.1;
+				text-align: center;
+				margin-top: -5px;
+			}
+
+			.mobile-break {
+				display: block; /* Kích hoạt lệnh xuống dòng */
+				content: "";    /* Đảm bảo nó chiếm chỗ để đẩy chữ xuống */
+				margin-top: 5px; /* Khoảng cách giữa 2 dòng cho đẹp */
+			}			
+			
+			h1 {
+				font-size: 28px !important;
+				line-height: 1.4 !important;
+				text-align: center !important;
+				max-width: none; !important;
+				margin: 5px auto !important; /* Căn giữa cái khung h1 */
+				display: block !important;
+				white-space: normal !important; /* Cho phép rớt dòng */
+			}	
+		
+			.search-container input {
+				width: 100% !important;
+				font-size: 14px !important;
+				padding: 10px 15px !important;
+				height: auto !important;
+				border-radius: 25px !important;
+			}
+
+			.stat-box {
+				width: 90% !important;
+				margin: 10px auto !important;
+				font-size: 14px !important;
+				padding: 10px !important;
+			}
+			
+			/* 3. Sửa ô Tìm kiếm: Bỏ margin âm và thu nhỏ */
+			.search-wrapper {
+				margin-top: 10px !important; /* Chuyển từ -20px thành 10px */
+				width: 100% !important;
+				text-align: center;
+			}
+
+			.search-wrapper input {
+				width: 90% !important; /* Thu nhỏ ô nhập lại 90% màn hình */
+				padding: 10px !important;
+				font-size: 14px !important;
+				border-radius: 20px !important;
+			}			
+		}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-relative">
+        <!-- Logo nằm độc lập bên trái -->
+        <!--img src="images/logo_512.png" class="school-logo-left" onerror="this.style.display='none'"-->
+		
+        <!-- Nội dung chữ -->
+		<div class="header-content-center">		
+			<div class="don-vi">ỦY BAN NHÂN DÂN PHƯỜNG XUÂN HÒA</div>
+			<div class="ten-truong">TRƯỜNG TIỂU HỌC NGUYỄN THÁI SƠN</div>
+        <img src="images/logo_512.png" class="school-logo-left" onerror="this.style.display='none'">			
+			<h1>HỆ THỐNG <br class="mobile-break"> BÀI GIẢNG ĐIỆN TỬ</h1>
+	
+		</div>
+	</div>
+	
+	<!-- Dòng chữ chạy: Vàng trên nền xanh -->
+			
+		<div style="background-color: blue; color: #ffff00; padding: 8px 0; font-weight: bold; font-size: 2.2rem; margin: 10px 0; border-radius: 5px;">
+			<marquee onmouseover="this.stop()" onmouseout="this.start()"
+			<marquee behavior="scroll" direction="left" scrollamount="12">
+				"Trong cách học phải lấy tự học làm cốt" - Hồ Chí Minh
+			</marquee>
+		</div>		
+	
+		<div class="total-stats" style="margin-top: 5px;">
+		<div class="stat-box">
+			🚀 Tổng số: <span id="total-lessons">0</span> bài giảng hiện có
+		</div>
+
+	</div>
+	
+    <div class="search-wrapper" style="margin-top: -20px;">
+        <input type="text" id="teacherSearch" placeholder="🔍 Tìm kiếm tên giáo viên...">
+    </div>
+ 
+    <div id="teacher-list" class="grid-container"></div>
+	
+	<!-- Thông báo sẽ ẩn đi lúc đầu (display: none) -->
+		<div id="no-result" style="display: none; text-align: center; padding: 20px; color: #ff4d4d; font-weight: bold; background: #fff; border-radius: 8px; margin-top: 20px;">
+			❌ Không tìm thấy tên giáo viên. Bạn vui lòng kiểm tra lỗi chính tả hoặc Giáo viên chưa có bài giảng trên hệ thống...
+		</div>
+		
+</div>
+
+<script>
+    // CÁCH THÊM ẢNH: Bạn để ảnh vào thư mục 'images' và ghi tên file vào 'img'
+    let danhSachGV = [
+        { name: "Thầy Thái Nhật Cường", folder: "NhatCuong", count: 3, img: "NhatCuong.JPG" },
+        { name: "Cô Nguyễn Thị Thanh Lan", folder: "ThanhLan", count: 2, img: "ThanhLan.jpg" },
+        { name: "Cô Nguyễn Thị Thanh Xuân", folder: "ThanhXuan", count: 1, img: "default-avatar.png" },
+        { name: "Cô Nguyễn Thị Thùy Dương", folder: "THUYDUONG", count: 5, img: "ThuyDuong.jpg" },
+        { name: "Thầy Quốc Bảo", folder: "gv-5", count: 0, img: "default-avatar.png" },
+
+    ];
+
+    // Sắp xếp theo bài giảng
+    danhSachGV.sort((a, b) => b.count - a.count);
+
+    const container = document.getElementById('teacher-list');
+    const colors = ['#ffeaa7', '#fab1a0', '#ff7675', '#fd79a8', '#a29bfe', '#74b9ff', '#55efc4'];
+
+	// TÍNH TỔNG SỐ BÀI GIẢNG
+	const tongSoBai = danhSachGV.reduce((sum, gv) => sum + gv.count, 0);
+	document.getElementById('total-lessons').innerHTML = `<b>${tongSoBai}</b>`;
+	
+    function renderTeachers(list) {
+        container.innerHTML = "";
+        list.forEach((gv, index) => {
+            const card = document.createElement('a');
+            card.href = gv.folder + "/";
+            card.className = 'teacher-card';
+            // Viền màu cho card thêm sinh động
+            card.style.borderTop = `6px solid ${colors[index % colors.length]}`;
+			
+	            
+			// --- BẮT ĐẦU XỬ LÝ CHỮ VIẾT TẮT THÔNG MINH ---
+			const words = gv.name.trim().split(" "); // Tách họ tên thành mảng các từ
+			let shortName = "";
+        
+			if (words.length >= 2) {
+			   // Lấy chữ cái đầu của từ áp chót và từ cuối cùng
+				const tuApChot = words[words.length - 2];
+				const tuCuoi = words[words.length - 1];
+				shortName = tuApChot.charAt(0).toUpperCase() + tuCuoi.charAt(0).toUpperCase();
+			} else {
+            // Trường hợp tên chỉ có 1 từ (hiếm gặp)
+            shortName = words[0].charAt(0).toUpperCase();
+			}
+			// --- KẾT THÚC XỬ LÝ ---
+
+			const bgColor = colors[index % colors.length];
+
+
+			card.innerHTML = `
+            <!-- Cột bên trái: Ảnh và Tên bên dưới -->
+			<div class="avatar-container">
+                <img src="images/${gv.img}" class="avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+				<div class="avatar-circle" style="background-color: ${bgColor}; display: none;">
+					${shortName}
+            </div>
+                <div class="name">${gv.name}</div>
+			</div>
+			<!-- Cột bên phải: Số bài giảng -->
+			<div class="info-right">
+                <div class="count">
+					📚 <b>${gv.count}</b> bài giảng
+				</div>
+			</div>	
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    renderTeachers(danhSachGV);
+
+		<!-- document.getElementById('teacherSearch').addEventListener('input', (e) => { -->
+		<!--	const val = e.target.value.toLowerCase(); -->
+		<!--	renderTeachers(danhSachGV.filter(g => g.name.toLowerCase().includes(val))); -->
+		
+		<!-- document.getElementById('teacherSearch').addEventListener('input', (e) => { -->
+		document.getElementById('teacherSearch').addEventListener('keydown', (e) => {
+			// Chỉ chạy code khi phím nhấn xuống là phím Enter
+				if (e.key === 'Enter') {
+				const val = e.target.value.toLowerCase().trim();	
+			
+		// 1. Lọc danh sách giáo viên
+			const filteredList = danhSachGV.filter(g => g.name.toLowerCase().includes(val));
+		
+		// 2. Chạy hàm render với danh sách đã lọc
+			renderTeachers(filteredList);
+		
+		// 3. Xử lý hiển thị thông báo "Không tìm thấy"
+			const noResultMsg = document.getElementById('no-result');
+			if (filteredList.length === 0 && val !== "") {
+				noResultMsg.style.display = "block"; // Hiện thông báo nếu danh sách rỗng
+				
+				// Dòng này giúp hiệu ứng chạy lại từ đầu mỗi khi hiện thông báo
+				noResultMsg.style.animation = 'none';
+				noResultMsg.offsetHeight; /* trick để trình duyệt hiểu là cần reset animation */
+				noResultMsg.style.animation = 'fadeIn 5s ease-out';
+								
+			} else {
+				noResultMsg.style.display = "none";  // Ẩn đi nếu có kết quả
+			}
+		}
+		
+		// Tự động hiện lại danh sách khi người dùng xóa sạch ô tìm kiếm
+		document.getElementById('teacherSearch').addEventListener('input', (e) => {
+			if (e.target.value.trim() === "") {
+				renderTeachers(danhSachGV);
+				document.getElementById('no-result').style.display = "none";
+			}
+		});
+    });
+</script>
+</body>
+</html>
