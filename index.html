@@ -350,10 +350,11 @@
 <script>
     // CÁCH THÊM ẢNH: Bạn để ảnh vào thư mục 'images' và ghi tên file vào 'img'
     let danhSachGV = [
-        { name: "Thầy Thái Nhật Cường", folder: "NhatCuong", count: 3, img: "NhatCuong.JPG" },
-        { name: "Cô Nguyễn Thị Thanh Lan", folder: "ThanhLan", count: 2, img: "ThanhLan.jpg" },
-        { name: "Cô Nguyễn Thị Thanh Xuân", folder: "ThanhXuan", count: 1, img: "default-avatar.png" },
-        { name: "Cô Nguyễn Thị Thùy Dương", folder: "THUYDUONG", count: 5, img: "ThuyDuong.jpg" },
+        { name: "Thầy Thái Nhật Cường", folder: "NhatCuong", count: 3, img: "nhatCuong.JPG" },
+        { name: "Cô Nguyễn Thị Thanh Lan", folder: "ThanhLan", count: 2, img: "thanhlan.jpg" },
+        { name: "Cô Nguyễn Thị Thanh Xuân", linkFull: "https://nts-baigiang-lms.pages.dev/ThanhXuan/index.html", count: 1, img: "default-avatar.png" },
+        { name: "Cô Nguyễn Thị Thùy Dương", folder: "THUYDUONG", count: 5, img: "thuyduong.jpg" },
+		{ name: "Cô Trần Thị Kim Tiên", linkFull: "https://nts-baigiang-2.pages.dev/kimtien/index.html", count: 5, img: "kimtien.jpg" },
         { name: "Thầy Quốc Bảo", folder: "gv-5", count: 0, img: "default-avatar.png" },
 
     ];
@@ -372,7 +373,8 @@
         container.innerHTML = "";
         list.forEach((gv, index) => {
             const card = document.createElement('a');
-            card.href = gv.folder + "/";
+            // card.href = gv.folder + "/";
+			card.href = gv.linkFull + "/";
             card.className = 'teacher-card';
             // Viền màu cho card thêm sinh động
             card.style.borderTop = `6px solid ${colors[index % colors.length]}`;
